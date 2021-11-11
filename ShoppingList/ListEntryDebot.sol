@@ -5,7 +5,7 @@ pragma AbiHeader pubkey;
 
 import 'ShoppingDebot.sol';
 
-contract D_FillingShoppingList is ShoppingDebot{
+contract ListEntryDebot is ShoppingDebot{
 
     
     function _menu() public override{
