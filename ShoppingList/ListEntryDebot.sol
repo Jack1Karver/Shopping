@@ -3,42 +3,44 @@ pragma AbiHeader expire;
 pragma AbiHeader time;
 pragma AbiHeader pubkey;
 
-import "ContractResources.sol";
-import "ShoppingDebot.sol";
+import 'ShoppingDebot.sol';
 
-contract ListEntry is ShoppingDebot{    
-    
+contract D_FillingShoppingList is ShoppingDebot{
+
     
     function _menu() public override{
         string sep = '----------------------------------------';
         Menu.select(
             format(
-                "You have {}/{}/{} (unpaid/paid/total) purchases",
+                 "You have {} / {} / {} (unpaid / paid / total )",
                     p_stat.unpaid,
                     p_stat.paid,
                     p_stat.total
             ),
             sep,
             [
-                MenuItem("Create new purchase","",tvm.functionId(createPurchase)),
-                MenuItem("Show purchases list","",tvm.functionId(showPurchases)),
+                MenuItem("Add purchase","",tvm.functionId(createPurchase)),
+                MenuItem("Show shopping list","",tvm.functionId(showPurchases)),
                 MenuItem("Delete purchase","",tvm.functionId(deletePurchase))
             ]
         );
     }
-
-    function createPurchase() public {
-        addPurchaseTitle();
-        addPurchaseQuantity();        
+    
+    function createPurchase(uint32 index) public{
+        index = index;
+        Terminal.input(tvm.functionId(createPurchase_), "Enter product name:", false);
     }
 
-    function addPurchaseTitle() public{        
-        Terminal.input(tvm.functionId(addPurchaseTitle_), "Enter purchase title" , false);
+    function createPurchase_(string value) public {
+        nameOfProduct = value;
+        Terminal.input(tvm.functionId(createPurchase__), "Enter amount:", false);
     }
-
-    function addPurchaseTitle_(string title) public view{
+        
+    function createPurchase__(string value) public {
+        (uint256 num,) = stoi(value);
+        amountOfProducts = uint32(num);
         optional(uint256) pubkey = 0;
-        IShopList(p_address).createTitle{
+        IShopList(p_address).createPurchase{
                 abiVer: 2,
                 extMsg: true,
                 sign: true,
@@ -47,27 +49,11 @@ contract ListEntry is ShoppingDebot{
                 expire: 0,
                 callbackId: tvm.functionId(onSuccess),
                 onErrorId: tvm.functionId(onError)
-            }(title);
-    }
-    function addPurchaseQuantity() public {        
-        Terminal.input(tvm.functionId(addPurchaseTitle_), "Enter purchase quantity" , false);
+            }(nameOfProduct, amountOfProducts);
     }
 
-function addPurchaseQuantity_(uint value) public view{
-        optional(uint256) pubkey = 0;
-        IShopList(p_address).createQuantity{
-                abiVer: 2,
-                extMsg: true,
-                sign: true,
-                pubkey: pubkey,
-                time: uint64(now),
-                expire: 0,
-                callbackId: tvm.functionId(onSuccess),
-                onErrorId: tvm.functionId(onError)
-            }(value);
-    }
-
-    function showPurchases() public view {        
+    function showPurchases(uint32 index) public view {
+        index = index;
         optional(uint256) none;
         IShopList(p_address).getPurchases{
             abiVer: 2,
@@ -75,41 +61,46 @@ function addPurchaseQuantity_(uint value) public view{
             sign: false,
             pubkey: none,
             time: uint64(now),
-            expire: 0,
+            expire: tvm.functionId(onSuccess),
             callbackId: tvm.functionId(showPurchases_),
             onErrorId: 0
         }();
     }
 
-        function showPurchases_(Purchase[] list ) public {
-        if (list.length > 0 ) {
-            Terminal.print(0, "Your tasks list:");
-            for (uint i = 0; i < list.length; i++) {
-                Purchase purchase = list[i];
+    function showPurchases_( Purchase[] purchases ) public {
+        uint32 i;
+        if (purchases.length > 0 ) {
+            Terminal.print(0, "Your shopping list:");
+            for (i = 0; i < purchases.length; i++) {
+                Purchase purchase = purchases[i];
                 string completed;
                 if (purchase.bought) {
                     completed = '✓';
                 } else {
-                    completed = 'X';
+                    completed = ' ';
                 }
-                Terminal.print(0, format("{} {}  {}  {} {} {} ", purchase.id, completed, purchase.title, purchase.quantity,purchase.price,purchase.time));
+                Terminal.print(0, format("{} {}  \"{}\" Quantity: {} Price: {}  at {}", purchase.id, completed, purchase.title, purchase.quantity, purchase.price, purchase.createdAt));
             }
         } else {
-            Terminal.print(0, "Your tasks list is empty");
+            Terminal.print(0, "Your shopping list is empty");
         }
         _menu();
     }
-    function deletePurchase() public {
-        if (p_stat.total > 0) {
-            Terminal.input(tvm.functionId(deletePurchase_), "Enter purchase number:", false);
+
+    function deletePurchase(uint32 index) public {
+        tvm.functionId(showPurchases); 
+        index = index;
+        if (p_stat.paid + p_stat.unpaid > 0) {
+            Terminal.input(tvm.functionId(deletePurchase_), "Enter product number:", false);
         } else {
-            Terminal.print(0, "Sorry, you have no purchase");
+            Terminal.print(0, "Sorry, you have no products to delete");
             _menu();
         }
     }
-    function deletePurchase_(string value) public view{
-        (uint num,) = stoi(value);
-        optional(uint) pubkey = 0;
+
+    function deletePurchase_(string value) public view {
+        (uint256 num,) = stoi(value);
+        optional(uint256) pubkey = 0;
         IShopList(p_address).deletePurchase{
                 abiVer: 2,
                 extMsg: true,
@@ -119,8 +110,6 @@ function addPurchaseQuantity_(uint value) public view{
                 expire: 0,
                 callbackId: tvm.functionId(onSuccess),
                 onErrorId: tvm.functionId(onError)
-            }(num);
+            }(uint32(num));
     }
-}
-    
-
+} 

@@ -12,36 +12,23 @@
 		{
 			"name": "createPurchase",
 			"inputs": [
+				{"name":"index","type":"uint32"}
 			],
 			"outputs": [
 			]
 		},
 		{
-			"name": "addPurchaseTitle",
+			"name": "createPurchase_",
 			"inputs": [
+				{"name":"value","type":"bytes"}
 			],
 			"outputs": [
 			]
 		},
 		{
-			"name": "addPurchaseTitle_",
+			"name": "createPurchase__",
 			"inputs": [
-				{"name":"title","type":"bytes"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "addPurchaseQuantity",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "addPurchaseQuantity_",
-			"inputs": [
-				{"name":"value","type":"uint256"}
+				{"name":"value","type":"bytes"}
 			],
 			"outputs": [
 			]
@@ -49,6 +36,7 @@
 		{
 			"name": "showPurchases",
 			"inputs": [
+				{"name":"index","type":"uint32"}
 			],
 			"outputs": [
 			]
@@ -56,7 +44,7 @@
 		{
 			"name": "showPurchases_",
 			"inputs": [
-				{"components":[{"name":"id","type":"uint256"},{"name":"title","type":"bytes"},{"name":"quantity","type":"uint256"},{"name":"time","type":"uint64"},{"name":"bought","type":"bool"},{"name":"price","type":"uint256"}],"name":"list","type":"tuple[]"}
+				{"components":[{"name":"id","type":"uint32"},{"name":"title","type":"bytes"},{"name":"quantity","type":"uint32"},{"name":"createdAt","type":"uint64"},{"name":"bought","type":"bool"},{"name":"price","type":"uint32"}],"name":"purchases","type":"tuple[]"}
 			],
 			"outputs": [
 			]
@@ -64,6 +52,7 @@
 		{
 			"name": "deletePurchase",
 			"inputs": [
+				{"name":"index","type":"uint32"}
 			],
 			"outputs": [
 			]
@@ -72,6 +61,38 @@
 			"name": "deletePurchase_",
 			"inputs": [
 				{"name":"value","type":"bytes"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "setShoppingListCode",
+			"inputs": [
+				{"name":"code","type":"cell"},
+				{"name":"data","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onError",
+			"inputs": [
+				{"name":"sdkError","type":"uint32"},
+				{"name":"exitCode","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "onSuccess",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "start",
+			"inputs": [
 			],
 			"outputs": [
 			]
@@ -103,25 +124,9 @@
 			]
 		},
 		{
-			"name": "setTodoCode",
-			"inputs": [
-				{"name":"code","type":"cell"},
-				{"name":"data","type":"cell"}
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "savePublicKey",
 			"inputs": [
 				{"name":"value","type":"bytes"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "start",
-			"inputs": [
 			],
 			"outputs": [
 			]
@@ -143,31 +148,6 @@
 			]
 		},
 		{
-			"name": "onError",
-			"inputs": [
-				{"name":"sdkError","type":"uint32"},
-				{"name":"exitCode","type":"uint32"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onErrorRepeatDeploy",
-			"inputs": [
-				{"name":"sdkError","type":"uint32"},
-				{"name":"exitCode","type":"uint32"}
-			],
-			"outputs": [
-			]
-		},
-		{
-			"name": "onSuccess",
-			"inputs": [
-			],
-			"outputs": [
-			]
-		},
-		{
 			"name": "onErrorRepeatCredit",
 			"inputs": [
 				{"name":"sdkError","type":"uint32"},
@@ -184,7 +164,7 @@
 			]
 		},
 		{
-			"name": "checkIfStatusIs0",
+			"name": "CheckIfContractHasLoaded",
 			"inputs": [
 				{"name":"acc_type","type":"int8"}
 			],
@@ -192,9 +172,34 @@
 			]
 		},
 		{
+			"name": "onErrorRepeatDeploy",
+			"inputs": [
+				{"name":"sdkError","type":"uint32"},
+				{"name":"exitCode","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "setTotal",
 			"inputs": [
-				{"components":[{"name":"paid","type":"uint256"},{"name":"unpaid","type":"uint256"},{"name":"total","type":"uint256"}],"name":"stat","type":"tuple"}
+				{"components":[{"name":"paid","type":"uint32"},{"name":"unpaid","type":"uint32"},{"name":"total","type":"uint32"}],"name":"stat","type":"tuple"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "_getTotal",
+			"inputs": [
+				{"name":"answerId","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "upgrade",
+			"inputs": [
+				{"name":"state","type":"cell"}
 			],
 			"outputs": [
 			]

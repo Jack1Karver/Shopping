@@ -1,35 +1,33 @@
-
 pragma ton-solidity >= 0.35.0;
 pragma AbiHeader expire;
 
 struct Purchase{
-    uint id;
+    uint32 id;
     string title;
-    uint quantity;
-    uint64 time;
-    bool bought;
-    uint price;    
+    uint32 quantity;
+    uint64 createdAt;
+    bool bought;  
+    uint32 price;  
 }
 
-struct PurchaseTotal{
-    uint paid;
-    uint unpaid;
-    uint total;
+struct PurchaseTotal {
+    uint32 paid;
+    uint32 unpaid;
+    uint32 total;
 }
 
-interface IShopList {   
-    function buy(uint id, uint price) external;
-    function deletePurchase(uint id) external;
-    function getPurchases() external returns (Purchase[] list);
+interface IShopList {
+    function createPurchase(string title, uint32 count) external;
+    function buy(uint32 id, uint32 price) external;
+    function deletePurchase(uint32 id) external;
+    function getPurchases() external returns (Purchase[] purchases);
     function getTotal() external returns (PurchaseTotal totalStat);
-    function createTitle(string title) external;
-    function createQuantity(uint quantity) external;
 }
 
-interface Transactable{
-    function sendTransaction(address dest, uint128 value, bool bounce, uint8 flags, TvmCell payload  ) external;
+interface Transactable {
+    function sendTransaction(address dest, uint128 value, bool bounce, uint8 flags, TvmCell payload) external;
 }
 
 abstract contract HasConstructorWithPubkey {
-    constructor(uint256 pubkey) public {}
+   constructor(uint256 pubkey) public {}
 }

@@ -3,70 +3,31 @@ pragma AbiHeader expire;
 pragma AbiHeader time;
 pragma AbiHeader pubkey;
 
-import "ContractResources.sol";
-import "ShoppingDebot.sol";
+import 'ShoppingDebot.sol';
 
-contract ListEntry is ShoppingDebot{    
+contract D_Shopping is ShoppingDebot{
     
-    uint p_price;
+    
     function _menu() public override{
         string sep = '----------------------------------------';
         Menu.select(
             format(
-                "You have {}/{}/{} (unpaid/paid/total) purchases",
+                "You have {} / {} / {} (unpaid / paid / total )",
                     p_stat.unpaid,
                     p_stat.paid,
                     p_stat.total
             ),
             sep,
             [
-                MenuItem("Buy ","",tvm.functionId(buy)),
-                MenuItem("Show purchases list","",tvm.functionId(showPurchases)),
-                MenuItem("Delete purchase","",tvm.functionId(deletePurchase))
+                MenuItem("Show shopping list","",tvm.functionId(showPurchases)),
+                MenuItem("Delete purchase","",tvm.functionId(deletePurchase)),
+                MenuItem("Buy","",tvm.functionId(buy))
             ]
         );
     }
-    function buy() public {     
-        if (p_stat.unpaid > 0) {
-            Terminal.input(tvm.functionId(buy_), "Enter purchase number:", false);
-        } 
-        else if(p_stat.total > 0){
-            Terminal.print(0, "Congrats! You've bought all purchases! We have nothing else to buy.");
-            _menu();
-        }
-        else{
-            Terminal.print(0, "We have nothing to buy");
-            
-        }
-    }    
-    function buy_(string value) public {
-        (uint num,) = stoi(value);
-        p_purchaseId = uint32(num);
-        Terminal.input(tvm.functionId(setPrice), "Enter the quantity", false);
-        ConfirmInput.get(tvm.functionId(buy__),"Are you sure you bought this?");
-    }
-    function setPrice(string price) public{
-        (uint num,) = stoi(price);
-        p_price = num;
-    }
-
-    function buy__(string value) public {
-        
-        optional(uint256) pubkey = 0;
-        IShopList(p_address).buy{
-                abiVer: 2,
-                extMsg: true,
-                sign: true,
-                pubkey: pubkey,
-                time: uint64(now),
-                expire: 0,
-                callbackId: tvm.functionId(onSuccess),
-                onErrorId: tvm.functionId(onError)
-            }(p_purchaseId, p_price);
-    }
-
-   
-    function showPurchases() public view {        
+    
+    function showPurchases(uint32 index) public view {
+        index = index;
         optional(uint256) none;
         IShopList(p_address).getPurchases{
             abiVer: 2,
@@ -80,35 +41,40 @@ contract ListEntry is ShoppingDebot{
         }();
     }
 
-        function showPurchases_(Purchase[] list ) public {
-        if (list.length > 0 ) {
-            Terminal.print(0, "Your tasks list:");
-            for (uint i = 0; i < list.length; i++) {
-                Purchase purchase = list[i];
+    function showPurchases_( Purchase[] purchases ) public {
+        uint32 i;
+        if (purchases.length > 0 ) {
+            Terminal.print(0, "Your shopping list:");
+            for (i = 0; i < purchases.length; i++) {
+                Purchase purchase = purchases[i];
                 string completed;
                 if (purchase.bought) {
                     completed = '✓';
                 } else {
-                    completed = 'X';
+                    completed = ' ';
                 }
-                Terminal.print(0, format("{} {}  {}  {} {} {} ", purchase.id, completed, purchase.title, purchase.quantity,purchase.price,purchase.time));
+                Terminal.print(0, format("{} {}  \"{}\" Quantity: {}, Price: {}  at {}", purchase.id, completed, purchase.title,purchase.quantity,purchase.price, purchase.createdAt));
             }
         } else {
-            Terminal.print(0, "Your tasks list is empty");
+            Terminal.print(0, "Your shopping list is empty");
         }
         _menu();
     }
-    function deletePurchase() public {
-        if (p_stat.total > 0) {
+
+    function deletePurchase(uint32 index) public {
+        tvm.functionId(showPurchases); 
+        index = index;
+        if (p_stat.paid + p_stat.unpaid > 0) {
             Terminal.input(tvm.functionId(deletePurchase_), "Enter purchase number:", false);
         } else {
-            Terminal.print(0, "Sorry, you have no purchase");
+            Terminal.print(0, "Sorry, you have no purchases to delete");
             _menu();
         }
     }
-    function deletePurchase_(string value) public view{
-        (uint num,) = stoi(value);
-        optional(uint) pubkey = 0;
+
+    function deletePurchase_(string value) public view {
+        (uint256 num,) = stoi(value);
+        optional(uint256) pubkey = 0;
         IShopList(p_address).deletePurchase{
                 abiVer: 2,
                 extMsg: true,
@@ -118,8 +84,38 @@ contract ListEntry is ShoppingDebot{
                 expire: 0,
                 callbackId: tvm.functionId(onSuccess),
                 onErrorId: tvm.functionId(onError)
-            }(num);
-    }
-}
-    
+            }(uint32(num));
+    }     
 
+    function buy(uint32 index) public {
+        index = index;
+        if (p_stat.unpaid > 0) {
+            Terminal.input(tvm.functionId(buy_), "Enter purchase number:", false);
+        } else {
+            Terminal.print(0, "Sorry, you don't have any scheduled purchases");
+            _menu();
+        }
+    }
+
+    function buy_(string value) public {
+        (uint256 num,) = stoi(value);
+        p_purchaseId = uint32(num);
+        Terminal.input(tvm.functionId(buy__), "Enter the purchase price:", false);
+
+    }
+    function buy__(string value) public {
+        (uint256 num,) = stoi(value);
+        p_purchasePrice = uint32(num);
+        optional(uint256) pubkey = 0;
+        IShopList(p_address).buy{
+                abiVer: 2,
+                extMsg: true,
+                sign: true,
+                pubkey: pubkey,
+                time: uint64(now),
+                expire: 0,
+                callbackId: tvm.functionId(onSuccess),
+                onErrorId: tvm.functionId(onError)
+            }(p_purchaseId, p_purchasePrice);
+    }  
+} 
